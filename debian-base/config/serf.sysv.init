@@ -1,0 +1,73 @@
+#!/bin/bash
+#
+# serf - this script starts and stops the serf service daemon
+#
+# chkconfig: 345 99 1
+# description:  serf
+# processname: serf
+# pidfile:     /var/run/serf.pid
+
+SERF_CONFIG_DIR="/etc/serf"
+SERF_LOG_FILE="/var/log/serf.log"
+
+prog=serf
+cmd="/bin/${prog} -- agent -config-dir=$SERF_CONFIG_DIR"
+pidfile="/var/run/${prog}.pid"
+lockfile="/var/lock/subsys/${prog}"
+
+[[ -f /etc/sysconfig/serf ]] && . /etc/sysconfig/serf
+
+[[ -d $SERF_CONFIG_DIR ]] || mkdir -p $SERF_CONFIG_DIR
+
+[[ -n $JOIN_IP ]] && cat > $SERF_CONFIG_DIR/join.json <<EOF
+{ "start_join" : ["$JOIN_IP"] }
+EOF
+
+cat > $SERF_CONFIG_DIR/node.json <<EOF
+{ "node_name" : "`hostname -f`" }
+EOF
+
+start() {
+    echo -n $"Starting $prog: "
+    start-stop-daemon --start --quiet --background --make-pidfile --pidfile $pidfile --exec ${cmd}
+}
+
+stop() {
+    echo -n $"Stopping $prog: "
+    start-stop-daemon --stop --quiet --pidfile $pidfile
+}
+
+rh_status() {
+    status $prog
+}
+
+rh_status_q() {
+    rh_status >/dev/null 2>&1
+}
+
+restart() {
+    stop
+    start
+}
+
+case "$1" in
+start)
+    #rh_status_q && exit 0
+    $1
+    ;;
+stop)
+    #rh_status_q && exit 0
+    $1
+    ;;
+restart)
+    $1
+    ;;
+status|status_q)
+    #rh_$1
+    echo $1
+    ;;
+*)
+    echo "Usage: $0 {start|stop|restart|status}"
+    exit 2
+esac
+exit 0
