@@ -1,9 +1,9 @@
 #! /bin/bash
 
-#pushd debian-base
-#echo "Installing debian/base ..."
-#docker build --rm -t debian/base .
-#popd
+pushd debian-base
+echo "Installing debian/base ..."
+docker build --rm -t debian/base .
+popd
 
 pushd debian-openjdk
 echo "Installing debian/openjdk:7 ..."
